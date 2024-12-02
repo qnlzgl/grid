@@ -1,7 +1,6 @@
 import dash
 from dash import dcc, html, dash_table
 import pandas as pd
-import plotly.express as px
 
 # Sample Data
 data_overview = {
@@ -45,57 +44,45 @@ df_success_agg = pd.DataFrame(list(success_aggregate.items()), columns=["Dataset
 # Dash App
 app = dash.Dash(__name__)
 
-app.layout = html.Div([
-    html.H1("Infrastructure Dashboard"),
-    
-    html.Div([
-        html.H2("Overview"),
-        dash_table.DataTable(
-            id='overview-table',
-            columns=[{"name": i, "id": i} for i in df_overview.columns],
-            data=df_overview.to_dict('records'),
-            style_table={'overflowX': 'auto'},
-        ),
-    ], style={'margin-bottom': '20px'}),
-    
-    html.Div([
-        html.H2("Current Failures"),
-        dash_table.DataTable(
-            id='failures-table',
-            columns=[{"name": i, "id": i} for i in df_failures.columns],
-            data=df_failures.to_dict('records'),
-            style_table={'overflowX': 'auto'},
-        ),
-    ], style={'margin-bottom': '20px'}),
-    
-    html.Div([
-        html.H2("Pending Today"),
-        dash_table.DataTable(
-            id='pending-table',
-            columns=[{"name": i, "id": i} for i in df_pending.columns],
-            data=df_pending.to_dict('records'),
-            style_table={'overflowX': 'auto'},
-        ),
-    ], style={'margin-bottom': '20px'}),
-    
-    html.Div([
-        html.H2("Updated Today"),
-        dash_table.DataTable(
-            id='updated-table',
-            columns=[{"name": i, "id": i} for i in df_updated.columns],
-            data=df_updated.to_dict('records'),
-            style_table={'overflowX': 'auto'},
-        ),
-    ], style={'margin-bottom': '20px'}),
-    
-    html.Div([
-        html.H2("% Success Aggregate"),
-        dcc.Graph(
-            id='success-aggregate-bar',
-            figure=px.bar(df_success_agg, x="Dataset", y="Success Rate", title="% Success Aggregate")
-        ),
-    ], style={'margin-bottom': '20px'}),
-])
+# Style mappings for conditional formatting
+def cell_color(status):
+    if status == "success":
+        return "green"
+    elif status == "failure":
+        return "red"
+    elif status == "pending":
+        return "purple"
+    return "white"
 
-if __name__ == '__main__':
-    app.run_server(debug=True)
+# Apply styles to Overview table
+overview_table_data = [
+    {
+        **row,
+        "StatusColor": cell_color(row["Status"])
+    }
+    for row in df_overview.to_dict("records")
+]
+
+app.layout = html.Div([
+    # Main Layout
+    html.Div([
+        # Left Section
+        html.Div([
+            html.H2("Overview"),
+            dash_table.DataTable(
+                id='overview-table',
+                columns=[
+                    {"name": i, "id": i} for i in ["Category", "Market", "Name"]
+                ] + [{"name": "", "id": "StatusColor", "presentation": "markdown"}],
+                data=[
+                    {**row, "StatusColor": f"### ⬤ {row['Status']}"}
+                    for row in overview_table_data
+                ],
+                style_data_conditional=[
+                    {
+                        "if": {"filter_query": f"{{Status}} = '{status}'", "column_id": "StatusColor"},
+                        "backgroundColor": color,
+                        "color": "white"
+                     },{
+}
+}
