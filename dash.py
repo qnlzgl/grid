@@ -75,11 +75,25 @@ datasets_status_history_data = {
 }
 df_datasets_status_history = pd.DataFrame(datasets_status_history_data)
 
+success_aggregate_data = {
+    "Dataset": ["dt2", "dt3", "dt4", "dt5", "dt6"],
+    "% Success": [70, 85, 91, 98, 65],
+}
+df_success_aggregate = pd.DataFrame(success_aggregate_data)
+
+success_datasets_data = {
+    "Category": ["Stats Office", "Food"],
+    "Market": ["UK", "Spain"],
+    "Name": ["RPI", "Soysuper"],
+    "Status": ["Success", "Pending"],
+}
+df_success_datasets = pd.DataFrame(success_datasets_data)
+
 # Initialize the Dash app
 app = Dash(__name__)
 
 app.layout = html.Div(
-    style={"display": "flex", "flexDirection": "row", "gap": "20px", "padding": "20px"},
+    style={"display": "flex", "gap": "30px", "padding": "20px"},
     children=[
         # Left Column: Overview
         html.Div(
@@ -139,19 +153,51 @@ app.layout = html.Div(
                     columns=[{"name": col, "id": col} for col in df_updated_today.columns],
                     data=df_updated_today.to_dict("records"),
                 ),
-                html.H2("% Success History"),
+                                html.H2("% Success Aggregate"),
                 dash_table.DataTable(
-                    id="success-history-table",
-                    columns=[{"name": col, "id": col} for col in df_success_history.columns],
-                    data=df_success_history.to_dict("records"),
-                ),
-                html.H2("Datasets Status History"),
-                dash_table.DataTable(
-                    id="datasets-status-history-table",
-                    columns=[
-                        {"name": col, "id": col} for col in df_datasets_status_history.columns
+                    id="success-aggregate-table",
+                    columns=[{"name": col, "id": col} for col in df_success_aggregate.columns],
+                    data=df_success_aggregate.to_dict("records"),
+                    style_data_conditional=[
+                        {
+                            "if": {"filter_query": "{% Success} >= 95"},
+                            "backgroundColor": "green",
+                            "color": "white",
+                        },
+                        {
+                            "if": {"filter_query": "{% Success} >= 80 && {% Success} < 95"},
+                            "backgroundColor": "lightgreen",
+                            "color": "black",
+                        },
+                        {
+                            "if": {"filter_query": "{% Success} < 70"},
+                            "backgroundColor": "red",
+                            "color": "white",
+                        },
                     ],
-                    data=df_datasets_status_history.to_dict("records"),
+                ),
+                html.H2("% Success Datasets"),
+                dash_table.DataTable(
+                    id="success-datasets-table",
+                    columns=[{"name": col, "id": col} for col in df_success_datasets.columns],
+                    data=df_success_datasets.to_dict("records"),
+                    style_data_conditional=[
+                        {
+                            "if": {"filter_query": '{Status} = "Success"'},
+                            "backgroundColor": "green",
+                            "color": "white",
+                        },
+                        {
+                            "if": {"filter_query": '{Status} = "Pending"'},
+                            "backgroundColor": "purple",
+                            "color": "white",
+                        },
+                        {
+                            "if": {"filter_query": '{Status} = "Failure"'},
+                            "backgroundColor": "red",
+                            "color": "white",
+                        },
+                    ],
                 ),
             ],
         ),
